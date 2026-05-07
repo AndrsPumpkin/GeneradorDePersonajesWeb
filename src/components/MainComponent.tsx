@@ -11,6 +11,7 @@ const MAX_SCALE = 2.5;
 
 export default function MainComponent() {
   const [hasStarted, setHasStarted] = useState(false);
+  const [contentOpacity, setContentOpacity] = useState(1);
   const [scale, setScale] = useState(1);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -47,6 +48,18 @@ export default function MainComponent() {
       ro.disconnect();
     };
   }, []);
+
+  const handleStart = () => {
+    // Iniciar desvanecimiento de salida
+    setContentOpacity(0);
+    
+    // Esperar a que termine la transición (500ms) para cambiar el componente
+    setTimeout(() => {
+      setHasStarted(true);
+      // Iniciar desvanecimiento de entrada
+      setContentOpacity(1);
+    }, 600);
+  };
 
   const scaledW = BASE_W * scale;
   const scaledH = BASE_H * scale;
@@ -101,12 +114,14 @@ export default function MainComponent() {
             position: 'absolute',
             top: 0,
             left: 0,
+            opacity: contentOpacity,
+            transition: 'opacity 0.6s ease-in-out',
           }}
         >
           {hasStarted ? (
             <CharacterGeneratorUI />
           ) : (
-            <StartScreen onStart={() => setHasStarted(true)} />
+            <StartScreen onStart={handleStart} />
           )}
         </div>
       </div>

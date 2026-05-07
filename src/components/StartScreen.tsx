@@ -40,7 +40,7 @@ export default function StartScreen({ onStart }: StartScreenProps) {
                transitionTimingFunction: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)' // Efecto rebote (bounce)
             }}
          >
-            <div className="relative w-[75%] flex justify-center items-center">
+            <div className="relative w-[100%] flex justify-center items-center">
                <img src={sveliatyText} alt="Sveliaty" className="absolute w-[80%] drop-shadow-lg mb-1" />
             </div>
          </div>

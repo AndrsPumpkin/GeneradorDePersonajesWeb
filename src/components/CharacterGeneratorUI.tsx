@@ -44,7 +44,9 @@ export default function CharacterGeneratorUI() {
          const ctx = canvas.getContext('2d');
          if (!ctx) return;
 
-         ctx.clearRect(0, 0, canvas.width, canvas.height);
+         const W = canvas.width;
+         const H = canvas.height;
+         ctx.clearRect(0, 0, W, H);
 
          const loadImage = (src: string): Promise<HTMLImageElement> =>
             new Promise((resolve, reject) => {
@@ -56,13 +58,16 @@ export default function CharacterGeneratorUI() {
             });
 
          try {
-            const cuerpoImg = await loadImage(`/assets/personajes/cuerpo/cuerpo${formatIndex(agilidad)}.png`);
-            const cabezaImg = await loadImage(`/assets/personajes/cabeza/cabeza${formatIndex(destreza)}.png`);
-            const brazosImg = await loadImage(`/assets/personajes/brazos/brazos${formatIndex(fuerza)}.png`);
+            // Solo las capas del personaje — sin marco (se muestra sobre el marco real de la UI)
+            const [cuerpoImg, cabezaImg, brazosImg] = await Promise.all([
+               loadImage(`/assets/personajes/cuerpo/cuerpo${formatIndex(agilidad)}.png`),
+               loadImage(`/assets/personajes/cabeza/cabeza${formatIndex(destreza)}.png`),
+               loadImage(`/assets/personajes/brazos/brazos${formatIndex(fuerza)}.png`),
+            ]);
 
-            ctx.drawImage(cuerpoImg, 0, 0, canvas.width, canvas.height);
-            ctx.drawImage(cabezaImg, 0, 0, canvas.width, canvas.height);
-            ctx.drawImage(brazosImg, 0, 0, canvas.width, canvas.height);
+            ctx.drawImage(cuerpoImg, 0, 0, W, H);
+            ctx.drawImage(cabezaImg, 0, 0, W, H);
+            ctx.drawImage(brazosImg, 0, 0, W, H);
 
             setResultImage(canvas.toDataURL('image/png'));
          } catch (err) {
@@ -91,15 +96,58 @@ export default function CharacterGeneratorUI() {
       setAppliedAgilidad(agilidad);
    };
 
-   const saveImage = () => {
+   // Al guardar, compone marco + personaje en un canvas temporal separado
+   const saveImage = async () => {
       if (!resultImage) return;
-      const a = document.createElement('a');
-      a.href = resultImage;
-      const timestamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
-      a.download = `Personaje_${timestamp}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+
+      const loadImage = (src: string): Promise<HTMLImageElement> =>
+         new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = src;
+         });
+
+      try {
+         const W = 800;
+         const H = 900;
+         const exportCanvas = document.createElement('canvas');
+         exportCanvas.width = W;
+         exportCanvas.height = H;
+         const ctx = exportCanvas.getContext('2d')!;
+
+         const [marcoImg, personajeImg] = await Promise.all([
+            loadImage(marcoLargo),
+            loadImage(resultImage),
+         ]);
+
+         // 1. Marco a tamaño completo
+         ctx.drawImage(marcoImg, 0, 0, W, H);
+
+         // 2. Personaje grande dentro del área interior del marco
+         const charW = W * 0.85;
+         const charH = H * 0.88;
+         const charX = (W - charW) / 2;
+         const charY = (H - charH) / 2;
+         ctx.drawImage(personajeImg, charX, charY, charW, charH);
+
+         const a = document.createElement('a');
+         a.href = exportCanvas.toDataURL('image/png');
+         const timestamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
+         a.download = `Personaje_${timestamp}.png`;
+         document.body.appendChild(a);
+         a.click();
+         document.body.removeChild(a);
+      } catch (err) {
+         console.error('Error al exportar imagen:', err);
+      }
+   };
+
+   const handleReset = () => {
+      setFuerza(0); setDestreza(0); setAgilidad(0);
+      setAppliedFuerza(0); setAppliedDestreza(0); setAppliedAgilidad(0);
+      setResultImage(null);
    };
 
    const handleIncrement = (setter: any, current: number) => { if (current < 9) setter(current + 1); };
@@ -163,7 +211,7 @@ export default function CharacterGeneratorUI() {
          gap: 0,
       }}>
          {/* Canvas oculto */}
-         <canvas ref={canvasRef} width={1000} height={1000} style={{ display: 'none' }} />
+         <canvas ref={canvasRef} width={1000} height={1200} style={{ display: 'none' }} />
 
          {/* ─── TÍTULOS ─── */}
          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
@@ -201,13 +249,45 @@ export default function CharacterGeneratorUI() {
          }}>
             <img src={marcoLargo} alt="Marco" style={{ position: 'absolute', inset: 0, width: '100%', height: '115%', objectFit: 'fill' }} />
 
-            <div style={{ position: 'relative', zIndex: 1, width: '75%', height: '85%', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            <div style={{ position: 'relative', zIndex: 1, width: '75%', height: '85%', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginTop: 150 }}>
                {resultImage ? (
-                  <img src={resultImage} alt="Personaje" style={{ height: '140%', objectFit: 'contain' }} />
+                  <img src={resultImage} alt="Personaje" style={{ height: '140%', objectFit: 'contain', animation: 'breathe 2.5s ease-in-out infinite', transformOrigin: 'bottom center' }} />
                ) : (
-                  <img src={gotaBase} alt="Gota Base" style={{ height: '100%', objectFit: 'contain' }} />
+                  <img src={gotaBase} alt="Gota Base" style={{ height: '100%', objectFit: 'contain', animation: 'breathe 2.5s ease-in-out infinite', transformOrigin: 'bottom center', marginTop: -60 }} />
                )}
             </div>
+
+            {/* Botón Reiniciar — esquina superior derecha del panel */}
+            <button
+               onClick={handleReset}
+               title="Reiniciar"
+               style={{
+                  position: 'absolute',
+                  top: 18,
+                  right: 18,
+                  zIndex: 20,
+                  width: 72,
+                  height: 72,
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle at 35% 35%, #5c3a1e, #2a1608)',
+                  border: '3px solid #c8922a',
+                  boxShadow: '0 0 12px rgba(200,146,42,0.5), inset 0 2px 4px rgba(255,200,80,0.2)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 34,
+                  color: '#f0c040',
+                  outline: 'none',
+                  transition: 'transform 0.15s, box-shadow 0.15s',
+               }}
+               onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.1)')}
+               onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+               onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.92)')}
+               onMouseUp={e => (e.currentTarget.style.transform = 'scale(1.1)')}
+            >
+               ↺
+            </button>
 
             {/* Botón Capturar — solapado en el borde inferior */}
             <button
@@ -239,15 +319,17 @@ export default function CharacterGeneratorUI() {
          <div style={{
             position: 'relative',
             width: '90%',
-            height: 400,
-            marginTop: 160,
+            height: 500,
+            marginTop: 100,
             flexShrink: 0,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
          }}>
-            <img src={marcoAncho} alt="Marco Controles" style={{ position: 'absolute', inset: 0, width: '100%', height: '115%', objectFit: 'fill' }} />
+            {/* Marco ocupa exactamente el div */}
+            <img src={marcoAncho} alt="Marco Controles" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'fill' }} />
 
+            {/* Contenido centrado con padding para quedar dentro del borde visual */}
             <div style={{
                position: 'relative',
                zIndex: 1,
@@ -257,6 +339,9 @@ export default function CharacterGeneratorUI() {
                flexDirection: 'column',
                justifyContent: 'space-evenly',
                alignItems: 'center',
+               paddingTop: 20,
+               paddingBottom: 20,
+               boxSizing: 'border-box',
             }}>
                <StatRow icon={iconoFuerza} iconAlt="Fuerza" value={fuerza} onInc={() => handleIncrement(setFuerza, fuerza)} onDec={() => handleDecrement(setFuerza, fuerza)} label="Fuerza" />
                <StatRow icon={iconoDestreza} iconAlt="Destreza" value={destreza} onInc={() => handleIncrement(setDestreza, destreza)} onDec={() => handleDecrement(setDestreza, destreza)} label="Destreza" />
@@ -269,7 +354,7 @@ export default function CharacterGeneratorUI() {
             display: 'flex',
             gap: 20,
             width: '90%',
-            marginTop: 70,
+            marginTop: 50,
             flexShrink: 0,
          }}>
             <button
@@ -287,6 +372,7 @@ export default function CharacterGeneratorUI() {
                <img src={tablillaLarga} alt="Fondo" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'fill' }} />
                <span style={{ position: 'relative', zIndex: 1, fontSize: 36, color: '#000', fontFamily: "'UnifrakturMaguntia', cursive", paddingTop: 8 }}>Generar Personaje</span>
             </button>
+
          </div>
       </div>
    );
