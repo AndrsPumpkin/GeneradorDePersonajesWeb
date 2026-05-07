@@ -1,41 +1,81 @@
-import { useState, useEffect } from 'preact/hooks';
+import { useState, useEffect, useRef } from 'preact/hooks';
 import CharacterGeneratorUI from './CharacterGeneratorUI';
 import StartScreen from './StartScreen';
+
+// Dimensiones de diseño base (portrait) - deben coincidir con el contenido interno
+const BASE_W = 430;
+const BASE_H = 980;
 
 export default function MainComponent() {
   const [hasStarted, setHasStarted] = useState(false);
   const [scale, setScale] = useState(1);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleResize = () => {
-      const scaleX = window.innerWidth / 450;
-      const scaleY = window.innerHeight / 980;
-      setScale(Math.min(1, scaleX, scaleY));
+    const computeScale = () => {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      // Escalar para ocupar al máximo el espacio sin desbordar
+      const scaleX = vw / BASE_W;
+      const scaleY = vh / BASE_H;
+      const newScale = Math.min(scaleX, scaleY);
+      setScale(newScale);
     };
 
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    computeScale();
+    window.addEventListener('resize', computeScale);
+    // También escuchar cambios de orientación
+    window.addEventListener('orientationchange', computeScale);
+    return () => {
+      window.removeEventListener('resize', computeScale);
+      window.removeEventListener('orientationchange', computeScale);
+    };
   }, []);
 
+  // Dimensiones escaladas del contenedor
+  const scaledW = BASE_W * scale;
+  const scaledH = BASE_H * scale;
+
   return (
-    <div className="relative min-h-[100dvh] w-full overflow-hidden bg-[#1a1a1a]">
+    <div
+      style={{
+        width: '100vw',
+        height: '100dvh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        background: '#1a1a1a',
+      }}
+    >
       <div
+        ref={containerRef}
         style={{
-          width: '450px',
-          height: '980px',
-          transform: `translate(-50%, -50%) scale(${scale})`,
-          position: 'absolute',
-          top: '50%',
-          left: '45%',
-          transformOrigin: 'center center'
+          width: `${scaledW}px`,
+          height: `${scaledH}px`,
+          position: 'relative',
+          flexShrink: 0,
+          overflow: 'hidden',
         }}
       >
-        {hasStarted ? (
-          <CharacterGeneratorUI />
-        ) : (
-          <StartScreen onStart={() => setHasStarted(true)} />
-        )}
+        {/* Inner container at BASE size, scaled down via transform */}
+        <div
+          style={{
+            width: `${BASE_W}px`,
+            height: `${BASE_H}px`,
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+          }}
+        >
+          {hasStarted ? (
+            <CharacterGeneratorUI />
+          ) : (
+            <StartScreen onStart={() => setHasStarted(true)} />
+          )}
+        </div>
       </div>
     </div>
   );

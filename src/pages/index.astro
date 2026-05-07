@@ -8,7 +8,7 @@ import MainComponent from '../components/MainComponent';
       <meta charset="utf-8" />
       <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
       <link rel="icon" href="/favicon.ico" />
-      <meta name="viewport" content="width=device-width" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
       <meta name="generator" content={Astro.generator} />
       <title>Generador de Personajes</title>
       <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,9 +16,15 @@ import MainComponent from '../components/MainComponent';
       <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&display=swap" rel="stylesheet">
       <style>
          @import "tailwindcss";
-         body {
+         *, *::before, *::after { box-sizing: border-box; }
+         html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
             font-family: 'UnifrakturMaguntia', cursive;
-            background-color: #f3f4f6; /* Light gray background to show the phone frame better */
+            background-color: #1a1a1a;
          }
       </style>
    </head>
