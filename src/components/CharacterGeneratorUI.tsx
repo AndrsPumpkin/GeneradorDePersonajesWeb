@@ -131,20 +131,20 @@ export default function CharacterGeneratorUI() {
          <canvas ref={canvasRef} width={1000} height={1000} style={{ display: 'none' }} />
 
          {/* Top Titles */}
-         <div className="relative w-full flex flex-col items-center mb-2 z-20">
+         <div className="relative w-full flex flex-col items-center mb-0 z-20">
             <div className="relative w-[95%] flex items-center justify-center z-10">
                <img src={tablonGrande} alt="Tablon Grande" className="w-full drop-shadow-2xl" />
                <span className="absolute text-black text-[22px] pt-1" style={{ fontFamily: "'UnifrakturMaguntia', cursive", textShadow: "1px 1px 2px rgba(255,255,255,0.2)" }}>Generador de Personajes</span>
             </div>
 
-            <div className="relative w-[65%] -mt-4 flex justify-center items-center z-20">
+            <div className="relative w-[65%] -mt-15 flex justify-center items-center z-20">
                <img src={tablaSveliaty} alt="Tabla Sveliaty" className="w-full drop-shadow-xl" />
                <img src={sveliatyText} alt="Sveliaty" className="absolute w-[80%] drop-shadow-md mb-1" />
             </div>
          </div>
 
          {/* Image Display Area */}
-         <div className="relative w-full max-w-[400px] mb-4 flex justify-center items-center h-[330px]">
+         <div className="relative w-full max-w-[400px] mb-4 -mt-2 flex justify-center items-center h-[330px]">
             <img src={marcoLargo} alt="Marco" className="absolute w-full h-[110%] object-fill drop-shadow-2xl" />
 
             <div className="relative z-10 w-[80%] h-[80%] flex items-center justify-center overflow-hidden">

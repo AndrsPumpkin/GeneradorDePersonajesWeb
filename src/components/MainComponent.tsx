@@ -4,8 +4,8 @@ import StartScreen from './StartScreen';
 import bgFondo from '../assets/RecursosPag/Fondo.png?url';
 
 // Dimensiones del diseño base — el "lienzo" en el que fue construida la UI
-const BASE_W = 430;
-const BASE_H = 980;
+const BASE_W = 1080;
+const BASE_H = 1920;
 // Escala máxima (evitar que se vea gigante en monitores 4K)
 const MAX_SCALE = 2.5;
 
