@@ -47,14 +47,14 @@ export default function StartScreen({ onStart }: StartScreenProps) {
 
          {/* Botón Comenzar */}
          <div
-            className={`absolute bottom-[35%] w-full flex justify-center transition-all duration-700 z-10 ${showButton ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}
+            className={`absolute bottom-[35%] w-full flex justify-center transition-all duration-700 z-10 ${showButton ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[80px] pointer-events-none'}`}
          >
             <button
                onClick={onStart}
-               className="relative flex items-center justify-center hover:scale-105 active:scale-95 transition-transform h-16 w-64 drop-shadow-md bg-transparent border-none outline-none"
+               className="relative flex items-center justify-center hover:scale-105 active:scale-95 transition-transform h-[125px] w-[640px] drop-shadow-md bg-transparent border-none outline-none"
             >
                <img src={tablillaLarga} alt="Fondo Boton" className="absolute w-full h-full object-fill" />
-               <span className="relative z-10 px-2 text-black text-[22px] pt-1" style={{ fontFamily: "'UnifrakturMaguntia', cursive" }}>Comenzar</span>
+               <span className="relative z-10 px-[20px] text-black text-[55px] pt-[10px]" style={{ fontFamily: "'UnifrakturMaguntia', cursive" }}>Comenzar</span>
             </button>
          </div>
       </div>
