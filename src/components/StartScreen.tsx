@@ -51,7 +51,8 @@ export default function StartScreen({ onStart }: StartScreenProps) {
          >
             <button
                onClick={onStart}
-               className="relative flex items-center justify-center hover:scale-105 active:scale-95 transition-transform h-[125px] w-[640px] drop-shadow-md bg-transparent border-none outline-none"
+               className="btn-hover-effect"
+               style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '125px', width: '640px', background: 'none', border: 'none', outline: 'none', cursor: 'pointer' }}
             >
                <img src={tablillaLarga} alt="Fondo Boton" className="absolute w-full h-full object-fill" />
                <span className="relative z-10 px-[20px] text-black text-[55px] pt-[10px]" style={{ fontFamily: "'UnifrakturMaguntia', cursive" }}>Comenzar</span>

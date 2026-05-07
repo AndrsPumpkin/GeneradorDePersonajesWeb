@@ -16,6 +16,8 @@ import sveliatyText from '../assets/RecursosPag/Sveliaty.png?url';
 import tablonGrande from '../assets/RecursosPag/Tablon Grande.png?url';
 import cameraIcon from '../assets/RecursosPag/New Piskel.png?url';
 import gotaBase from '../assets/RecursosPag/GotaBase.png?url';
+import espirituImg from '../assets/monstruos/espiritu.png?url';
+import fantasmaImg from '../assets/monstruos/fantasma.png?url';
 
 export default function CharacterGeneratorUI() {
    const [fuerza, setFuerza] = useState(0);
@@ -27,10 +29,47 @@ export default function CharacterGeneratorUI() {
    const [appliedAgilidad, setAppliedAgilidad] = useState(0);
 
    const [resultImage, setResultImage] = useState<string | null>(null);
+   const [showSpirit, setShowSpirit] = useState(false);
+   const [spiritTop, setSpiritTop] = useState(200);
+   const [showGhost, setShowGhost] = useState(false);
+   const [ghostTop, setGhostTop] = useState(400);
 
    const canvasRef = useRef<HTMLCanvasElement>(null);
 
    const formatIndex = (val: number) => val.toString().padStart(2, '0');
+
+   useEffect(() => {
+      const triggerSpirit = () => {
+         const randomDelay = Math.random() * 7000 + 8000; // Entre 8 y 15 segundos
+         setTimeout(() => {
+            setSpiritTop(Math.random() * 600 + 200); // Altura aleatoria entre 200 y 800px
+            setShowSpirit(true);
+            
+            // Ocultar después de que termine la animación (10 segundos)
+            setTimeout(() => {
+               setShowSpirit(false);
+               triggerSpirit();
+            }, 10000);
+         }, randomDelay);
+      };
+
+      triggerSpirit();
+
+      const triggerGhost = () => {
+         const randomDelay = Math.random() * 8000 + 8000; // Entre 8 y 16 segundos
+         setTimeout(() => {
+            setGhostTop(Math.random() * 600 + 300); // Altura aleatoria
+            setShowGhost(true);
+            
+            setTimeout(() => {
+               setShowGhost(false);
+               triggerGhost();
+            }, 10000);
+         }, randomDelay);
+      };
+
+      triggerGhost();
+   }, []);
 
    useEffect(() => {
       if (appliedFuerza === 0 || appliedDestreza === 0 || appliedAgilidad === 0) {
@@ -58,11 +97,10 @@ export default function CharacterGeneratorUI() {
             });
 
          try {
-            // Solo las capas del personaje — sin marco (se muestra sobre el marco real de la UI)
             const [cuerpoImg, cabezaImg, brazosImg] = await Promise.all([
-               loadImage(`/assets/personajes/cuerpo/cuerpo${formatIndex(agilidad)}.png`),
-               loadImage(`/assets/personajes/cabeza/cabeza${formatIndex(destreza)}.png`),
-               loadImage(`/assets/personajes/brazos/brazos${formatIndex(fuerza)}.png`),
+               loadImage(`/assets/personajes/cuerpo/cuerpo${formatIndex(appliedAgilidad)}.png`),
+               loadImage(`/assets/personajes/cabeza/cabeza${formatIndex(appliedDestreza)}.png`),
+               loadImage(`/assets/personajes/brazos/brazos${formatIndex(appliedFuerza)}.png`),
             ]);
 
             ctx.drawImage(cuerpoImg, 0, 0, W, H);
@@ -96,7 +134,6 @@ export default function CharacterGeneratorUI() {
       setAppliedAgilidad(agilidad);
    };
 
-   // Al guardar, compone marco + personaje en un canvas temporal separado
    const saveImage = async () => {
       if (!resultImage) return;
 
@@ -122,10 +159,8 @@ export default function CharacterGeneratorUI() {
             loadImage(resultImage),
          ]);
 
-         // 1. Marco a tamaño completo
          ctx.drawImage(marcoImg, 0, 0, W, H);
 
-         // 2. Personaje grande dentro del área interior del marco
          const charW = W * 0.85;
          const charH = H * 0.88;
          const charX = (W - charW) / 2;
@@ -153,7 +188,6 @@ export default function CharacterGeneratorUI() {
    const handleIncrement = (setter: any, current: number) => { if (current < 9) setter(current + 1); };
    const handleDecrement = (setter: any, current: number) => { if (current > 0) setter(current - 1); };
 
-   // Fila de stat reutilizable
    const StatRow = ({
       icon, iconAlt, value, onInc, onDec, label,
    }: {
@@ -168,26 +202,19 @@ export default function CharacterGeneratorUI() {
          padding: '0 80px',
          boxSizing: 'border-box',
       }}>
-         {/* Icono */}
          <img src={icon} alt={iconAlt} style={{ width: 90, height: 90, objectFit: 'contain', flexShrink: 0 }} />
-
-         {/* Pergamino + número */}
          <div style={{ position: 'relative', width: 110, height: 145, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <img src={pergamino} alt="Pergamino" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'fill' }} />
             <span style={{ position: 'relative', zIndex: 1, fontSize: 56, fontWeight: 'bold', color: '#000', fontFamily: "'UnifrakturMaguntia', cursive" }}>{value}</span>
          </div>
-
-         {/* Botones + / - */}
          <div style={{ display: 'flex', gap: 16, flexShrink: 0 }}>
-            <button onClick={onInc} style={{ background: 'none', border: 'none', outline: 'none', cursor: 'pointer', padding: 0 }}>
+            <button onClick={onInc} className="btn-hover-effect" style={{ background: 'none', border: 'none', outline: 'none', cursor: 'pointer', padding: 0 }}>
                <img src={btnMas} alt="Mas" style={{ width: 82, height: 82 }} />
             </button>
-            <button onClick={onDec} style={{ background: 'none', border: 'none', outline: 'none', cursor: 'pointer', padding: 0 }}>
+            <button onClick={onDec} className="btn-hover-effect" style={{ background: 'none', border: 'none', outline: 'none', cursor: 'pointer', padding: 0 }}>
                <img src={btnMenos} alt="Menos" style={{ width: 82, height: 82 }} />
             </button>
          </div>
-
-         {/* Etiqueta */}
          <div style={{ display: 'flex', flexDirection: 'column', color: '#000', textAlign: 'center', flex: 1 }}>
             <span style={{ fontSize: 20, fontWeight: 'bold', opacity: 0.8, lineHeight: 1.2 }}>Cantidad de cartas de</span>
             <span style={{ fontSize: 40, fontFamily: "'UnifrakturMaguntia', cursive", lineHeight: 1.2 }}>{label}</span>
@@ -209,13 +236,12 @@ export default function CharacterGeneratorUI() {
          paddingTop: 40,
          paddingBottom: 30,
          gap: 0,
+         position: 'relative',
+         overflow: 'hidden'
       }}>
-         {/* Canvas oculto */}
          <canvas ref={canvasRef} width={1000} height={1200} style={{ display: 'none' }} />
 
-         {/* ─── TÍTULOS ─── */}
          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
-            {/* Tablón "Generador de Personajes" */}
             <div style={{ position: 'relative', width: '92%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                <img src={tablonGrande} alt="Tablon" style={{ width: '100%', display: 'block' }} />
                <span style={{
@@ -228,15 +254,12 @@ export default function CharacterGeneratorUI() {
                   Generador de Personajes
                </span>
             </div>
-
-            {/* Tabla Sveliaty */}
             <div style={{ position: 'relative', width: '62%', marginTop: -170, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                <img src={tablaSveliaty} alt="Tabla Sveliaty" style={{ width: '100%', display: 'block' }} />
                <img src={sveliatyText} alt="Sveliaty" style={{ position: 'absolute', width: '78%' }} />
             </div>
          </div>
 
-         {/* ─── ÁREA DE IMAGEN ─── */}
          <div style={{
             position: 'relative',
             width: '90%',
@@ -248,7 +271,6 @@ export default function CharacterGeneratorUI() {
             flexShrink: 0,
          }}>
             <img src={marcoLargo} alt="Marco" style={{ position: 'absolute', inset: 0, width: '100%', height: '115%', objectFit: 'fill' }} />
-
             <div style={{ position: 'relative', zIndex: 1, width: '75%', height: '85%', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginTop: 150 }}>
                {resultImage ? (
                   <img src={resultImage} alt="Personaje" style={{ height: '140%', objectFit: 'contain', animation: 'breathe 2.5s ease-in-out infinite', transformOrigin: 'bottom center' }} />
@@ -256,11 +278,10 @@ export default function CharacterGeneratorUI() {
                   <img src={gotaBase} alt="Gota Base" style={{ height: '100%', objectFit: 'contain', animation: 'breathe 2.5s ease-in-out infinite', transformOrigin: 'bottom center', marginTop: -60 }} />
                )}
             </div>
-
-            {/* Botón Reiniciar — esquina superior derecha del panel */}
             <button
                onClick={handleReset}
                title="Reiniciar"
+               className="btn-hover-effect"
                style={{
                   position: 'absolute',
                   top: 18,
@@ -279,20 +300,14 @@ export default function CharacterGeneratorUI() {
                   fontSize: 34,
                   color: '#f0c040',
                   outline: 'none',
-                  transition: 'transform 0.15s, box-shadow 0.15s',
                }}
-               onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.1)')}
-               onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-               onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.92)')}
-               onMouseUp={e => (e.currentTarget.style.transform = 'scale(1.1)')}
             >
                ↺
             </button>
-
-            {/* Botón Capturar — solapado en el borde inferior */}
             <button
                onClick={saveImage}
                title="Capturar Imagen"
+               className="btn-hover-effect"
                style={{
                   position: 'absolute',
                   bottom: -42,
@@ -315,7 +330,6 @@ export default function CharacterGeneratorUI() {
             </button>
          </div>
 
-         {/* ─── CONTROLES ─── */}
          <div style={{
             position: 'relative',
             width: '90%',
@@ -326,10 +340,7 @@ export default function CharacterGeneratorUI() {
             alignItems: 'center',
             justifyContent: 'center',
          }}>
-            {/* Marco ocupa exactamente el div */}
             <img src={marcoAncho} alt="Marco Controles" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'fill' }} />
-
-            {/* Contenido centrado con padding para quedar dentro del borde visual */}
             <div style={{
                position: 'relative',
                zIndex: 1,
@@ -349,7 +360,6 @@ export default function CharacterGeneratorUI() {
             </div>
          </div>
 
-         {/* ─── BOTONES INFERIORES ─── */}
          <div style={{
             display: 'flex',
             gap: 20,
@@ -359,21 +369,54 @@ export default function CharacterGeneratorUI() {
          }}>
             <button
                onClick={generateRandom}
+               className="btn-hover-effect"
                style={{ position: 'relative', flex: 1, height: 105, background: 'none', border: 'none', outline: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
                <img src={tablillaLarga} alt="Fondo" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'fill' }} />
                <span style={{ position: 'relative', zIndex: 1, fontSize: 36, color: '#000', fontFamily: "'UnifrakturMaguntia', cursive", paddingTop: 8 }}>Personaje Aleatorio</span>
             </button>
-
             <button
                onClick={handleGenerate}
+               className="btn-hover-effect"
                style={{ position: 'relative', flex: 1, height: 105, background: 'none', border: 'none', outline: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
                <img src={tablillaLarga} alt="Fondo" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'fill' }} />
                <span style={{ position: 'relative', zIndex: 1, fontSize: 36, color: '#000', fontFamily: "'UnifrakturMaguntia', cursive", paddingTop: 8 }}>Generar Personaje</span>
             </button>
-
          </div>
+
+         {/* Espíritu que recorre la pantalla */}
+         {showSpirit && (
+            <img 
+               src={espirituImg} 
+               alt="Espíritu" 
+               style={{
+                  position: 'absolute',
+                  top: spiritTop,
+                  width: '120px',
+                  zIndex: 50,
+                  pointerEvents: 'none',
+                  animation: 'floatAcross 10s linear forwards, floatUpDown 3s ease-in-out infinite'
+               }} 
+            />
+         )}
+
+         {/* Fantasma que recorre la pantalla (sentido contrario) */}
+         {showGhost && (
+            <img 
+               src={fantasmaImg} 
+               alt="Fantasma" 
+               style={{
+                  position: 'absolute',
+                  top: ghostTop,
+                  width: '100px',
+                  zIndex: 50,
+                  pointerEvents: 'none',
+                  animation: 'floatBackwards 10s linear forwards, floatUpDown 3.5s ease-in-out infinite',
+                  transform: 'scaleX(-1)' // Opcional: despejar si el diseño mira hacia la derecha
+               }} 
+            />
+         )}
       </div>
    );
 }
