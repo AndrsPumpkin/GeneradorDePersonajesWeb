@@ -1,64 +1,97 @@
 import { useState, useEffect, useRef } from 'preact/hooks';
 import CharacterGeneratorUI from './CharacterGeneratorUI';
 import StartScreen from './StartScreen';
+import bgFondo from '../assets/RecursosPag/Fondo.png?url';
 
-// Dimensiones de diseño base (portrait) - deben coincidir con el contenido interno
+// Dimensiones del diseño base — el "lienzo" en el que fue construida la UI
 const BASE_W = 430;
 const BASE_H = 980;
+// Escala máxima (evitar que se vea gigante en monitores 4K)
+const MAX_SCALE = 2.5;
 
 export default function MainComponent() {
   const [hasStarted, setHasStarted] = useState(false);
   const [scale, setScale] = useState(1);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const computeScale = () => {
+    const computeLayout = () => {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      // Escalar para ocupar al máximo el espacio sin desbordar
-      const scaleX = vw / BASE_W;
-      const scaleY = vh / BASE_H;
-      const newScale = Math.min(scaleX, scaleY);
-      setScale(newScale);
+
+      // Escala que llena el ancho — prioritaria en portrait
+      const scaleByWidth = Math.min(vw / BASE_W, MAX_SCALE);
+      const scaledHeight = BASE_H * scaleByWidth;
+
+      // Si la altura escalada entra en pantalla → llenar el ancho completo
+      // Si no → reducir escala para que también quepa la altura (sin scroll)
+      const finalScale = scaledHeight <= vh
+        ? scaleByWidth
+        : Math.min(scaleByWidth, vh / BASE_H);
+
+      setScale(finalScale);
     };
 
-    computeScale();
-    window.addEventListener('resize', computeScale);
-    // También escuchar cambios de orientación
-    window.addEventListener('orientationchange', computeScale);
+    computeLayout();
+
+    // ResizeObserver detecta cambios reales del viewport en tiempo real
+    // (barra de URL de móvil, cambio de orientación, redimensionado de ventana)
+    const ro = new ResizeObserver(computeLayout);
+    ro.observe(document.documentElement);
+
+    window.addEventListener('orientationchange', () => {
+      setTimeout(computeLayout, 150);
+    });
+
     return () => {
-      window.removeEventListener('resize', computeScale);
-      window.removeEventListener('orientationchange', computeScale);
+      ro.disconnect();
     };
   }, []);
 
-  // Dimensiones escaladas del contenedor
   const scaledW = BASE_W * scale;
   const scaledH = BASE_H * scale;
 
   return (
+    // Capa exterior: ocupa todo el viewport con el fondo del juego
+    // Las áreas laterales (desktop) muestran el fondo en blur, sin barras negras
     <div
       style={{
-        width: '100vw',
+        width: '100dvw',
         height: '100dvh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
-        background: '#1a1a1a',
+        position: 'relative',
+        backgroundImage: `url('${bgFondo}')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       }}
     >
+      {/* Overlay oscuro semitransparente sobre el fondo (áreas fuera de la UI en desktop/landscape) */}
       <div
-        ref={containerRef}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.65)',
+          zIndex: 0,
+        }}
+      />
+
+      {/* Contenedor exactamente del tamaño escalado — sin espacios vacíos */}
+      <div
+        ref={wrapperRef}
         style={{
           width: `${scaledW}px`,
           height: `${scaledH}px`,
           position: 'relative',
           flexShrink: 0,
           overflow: 'hidden',
+          zIndex: 1,
+          boxShadow: '0 0 60px rgba(0,0,0,0.8)',
         }}
       >
-        {/* Inner container at BASE size, scaled down via transform */}
+        {/* Canvas de diseño original transformado al scale calculado dinámicamente */}
         <div
           style={{
             width: `${BASE_W}px`,

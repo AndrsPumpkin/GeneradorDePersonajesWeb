@@ -124,7 +124,7 @@ export default function CharacterGeneratorUI() {
 
    return (
       <div
-         className="w-full h-full bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center py-4 px-4 font-serif relative"
+         className="w-full h-full bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center py-4 font-serif relative"
          style={{ backgroundImage: `url('${bgFondo}')` }}
       >
          {/* Hidden Canvas for processing */}
