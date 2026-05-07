@@ -124,7 +124,7 @@ export default function CharacterGeneratorUI() {
 
    return (
       <div
-         className="w-full h-full bg-cover bg-center bg-no-repeat flex flex-col items-center py-4 px-4 font-serif relative"
+         className="w-full h-full bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center py-4 px-4 font-serif relative"
          style={{ backgroundImage: `url('${bgFondo}')` }}
       >
          {/* Hidden Canvas for processing */}
@@ -251,7 +251,7 @@ export default function CharacterGeneratorUI() {
          </div>
 
          {/* Bottom Buttons */}
-         <div className="flex gap-2 w-full justify-center mt-6 z-10 px-2">
+         <div className="flex gap-2 w-full max-w-[400px] justify-center mt-6 z-10">
             <button onClick={generateRandom} className="relative flex-1 flex items-center justify-center hover:scale-105 active:scale-95 transition-transform h-14 drop-shadow-md bg-transparent border-none outline-none">
                <img src={tablillaLarga} alt="Fondo Boton" className="absolute w-full h-full object-fill" />
                <span className="relative z-10 px-2 text-black text-[16px] pt-1" style={{ fontFamily: "'UnifrakturMaguntia', cursive" }}>Personaje Aleatorio</span>
