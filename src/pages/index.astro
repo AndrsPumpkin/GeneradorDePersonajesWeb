@@ -20,7 +20,7 @@ import MainComponent from "../components/MainComponent";
          href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&display=swap"
          rel="stylesheet"
       />
-      <style>
+      <style is:global>
          @import "tailwindcss";
          *,
          *::before,
@@ -63,16 +63,15 @@ import MainComponent from "../components/MainComponent";
             50% { transform: translateY(-30px); }
          }
          .btn-hover-effect {
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s, box-shadow 0.2s !important;
+            transition: scale 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s !important;
             cursor: pointer;
          }
          .btn-hover-effect:hover {
-            transform: scale(1.05) !important;
-            filter: brightness(1.15) !important;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5) !important;
+            scale: 1.05 !important;
+            filter: brightness(1.15) drop-shadow(0 0 10px rgba(255, 215, 0, 0.4)) !important;
          }
          .btn-hover-effect:active {
-            transform: scale(0.96) !important;
+            scale: 0.96 !important;
             filter: brightness(0.9) !important;
          }
       </style>
